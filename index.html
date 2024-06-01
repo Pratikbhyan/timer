@@ -15,16 +15,16 @@
             color: white;
             font-family: Arial, sans-serif;
         }
-        .controls, .stats {
+        .controls, .stats, .spotify-container {
             margin-bottom: 20px;
         }
-        input {
+        input, .spotify-input {
             font-size: 1.5em;
             text-align: center;
             margin-right: 10px;
         }
         #timer {
-            font-size: 20em; /* Keep increased font size */
+            font-size: 26em; /* Keep increased font size */
             text-align: center;
             background: none;
             border: none;
@@ -38,7 +38,7 @@
             color: white; /* White text */
             border: 1px solid white; /* White border */
         }
-        button, .reset-icon {
+        button, .reset-icon, .spotify-button {
             font-size: 1.5em;
             padding: 5px 10px;
             margin-right: 10px;
@@ -79,7 +79,7 @@
             text-align: center;
         }
         #quote {
-            margin-top: 20px;
+            margin-top: 30px;
             font-size: 1.5em;
             text-align: center;
             max-width: 600px;
@@ -88,7 +88,20 @@
             opacity: 0.2;
         }
         iframe {
-            margin-top: 20px;
+opacity: 0.5;
+            margin-top: 40px; /* Add space between the quote and Spotify player */
+            width: 400px; /* Elongate the Spotify player */
+            height: 80px;
+        }
+        .spotify-container {
+            opacity: 0.2; /* Dim the Spotify input and button */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .spotify-input, .spotify-button {
+            font-size: 0.5em; /* Make the input and button small */
         }
     </style>
 </head>
@@ -118,10 +131,14 @@
 
     <div id="quote"></div>
 
-    <audio id="pingSound" src="ping.mp3"></audio>
+    <div id="spotifyPlayer"></div>
+    
+    <div class="spotify-container">
+        <input type="text" class="spotify-input" id="playlistId" placeholder="Enter Spotify Playlist ID">
+        <button class="spotify-button" onclick="loadSpotifyPlayer()">Load Spotify Player</button>
+    </div>
 
-    <!-- Spotify Embed Code -->
-    <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX8NTLI2TtZa6?utm_source=generator&theme=0" width="300" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+    <audio id="pingSound" src="ping.mp3"></audio>
 
     <script>
         let timerInterval;
@@ -318,6 +335,14 @@
         function resetDayCounter() {
             totalTimeAdded = 0;
             document.getElementById('totalTime').value = totalTimeAdded.toFixed(2);
+        }
+
+        function loadSpotifyPlayer() {
+            const playlistId = document.getElementById('playlistId').value;
+            if (playlistId) {
+                const spotifyPlayer = `<iframe src="https://open.spotify.com/embed/playlist/${playlistId}" width="600" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+                document.getElementById('spotifyPlayer').innerHTML = spotifyPlayer;
+            }
         }
 
         window.onclick = function(event) {
