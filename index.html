@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer and Hours Studied Counter</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .controls, .spotify-container {
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-top: 200px;
+        }
+        #timer {
+            font-size: 6em;
+            text-align: center;
+            background: none;
+            border: none;
+            color: white;
+            width: 100%;
+            max-width: 500px;
+        }
+        .reset-icon {
+            background: none;
+            border: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .reset-icon img {
+            width: 40px;
+            height: 40px;
+        }
+        .modal-content {
+            color: black;
+        }
+        #quote {
+            margin-top: 30px;
+            font-size: 1.5em;
+            text-align: center;
+            max-width: 600px;
+        }
+        .dimmed .controls, .dimmed .modal {
+            opacity: 0.2;
+        }
+        iframe {
+            opacity: 0.5;
+            margin-top: 40px;
+            width: 100%;
+            max-width: 400px;
+            height: 80px;
+        }
+        .spotify-container {
+            opacity: 0.2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .counter-container {
+            text-align: center;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+            max-width: 300px;
+            font-size: 1em;
+            opacity: 0.8;
+        }
+        #incrementButton, #resetButtonCounter {
+            background-color: black;
+            color: white;
+            border: 1px solid white;
+            transition: background-color 0.3s;
+        }
+        #incrementButton:hover, #resetButtonCounter:hover {
+            background-color: grey;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls text-center">
+        <button class="btn btn-primary" onclick="openModal()">Start Timer</button>
+        <button class="btn btn-warning" onclick="resetTimer()">Reset Timer</button>
+        <button class="btn btn-danger" onclick="pauseTimer()" id="pauseButton">Pause Timer</button>
+    </div>
+    <input type="text" id="timer" value="00">
+
+    <div class="modal" id="timerModal">
+        <div class="modal-dialog">
+            <div class="modal-content text-center">
+                <div class="modal-body">
+                    <p>Is this focus time or break time?</p>
+                    <button class="btn btn-success" onclick="startCustomTimer('focus')">Focus Time</button>
+                    <button class="btn btn-secondary" onclick="startCustomTimer('break')">Break Time</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quote">"The best way to get started is to quit talking and begin doing." - Walt Disney</div>
+
+    <div id="spotifyPlayer"><iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DX8NTLI2TtZa6" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></div>
+    
+    <div class="spotify-container">
+        <input type="text" class="spotify-input form-control" id="playlistId" placeholder="Enter Spotify Playlist ID">
+        <button class="spotify-button btn btn-info" onclick="loadSpotifyPlayer()">Load Spotify Player</button>
+    </div>
+
+    <audio id="pingSound" src="ping.mp3"></audio>
+
+    <div class="counter-container">
+        <h1>Hours Studied: <span id="counter">0.5</span></h1>
+        <button id="incrementButton" class="btn btn-dark">Add</button>
+        <button id="resetButtonCounter" class="btn btn-dark">Reset</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let timerInterval;
+        let remainingSeconds = 0;
+        let isPaused = false;
+        let currentMode = '';
+        let quoteInterval;
+        const savedPlaylistId = localStorage.getItem('playlistId');
+        let totalTimeAdded = parseFloat(localStorage.getItem('totalTimeAdded')) || 0;
+
+        const quotes = [
+            '"The best way to get started is to quit talking and begin doing." - Walt Disney',
+            '"The pessimist sees difficulty in every opportunity. The optimist sees opportunity in every difficulty." - Winston Churchill', 
+            // Add more quotes as needed
+        ];
+
+        function changeQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            document.getElementById('quote').textContent = quotes[randomIndex];
+        }
+
+        function openModal() {
+            document.getElementById('timerModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('timerModal').style.display = 'none';
+        }
+
+        function startCustomTimer(type) {
+            closeModal();
+            currentMode = type;
+            let minutes = parseInt(document.getElementById('timer').value) || 0;
+            remainingSeconds = isPaused ? remainingSeconds : minutes * 60;
+            isPaused = false;
+
+            function updateTimer() {
+                if (remainingSeconds > 60) {
+                    let currentMinutes = Math.floor(remainingSeconds / 60);
+                    document.getElementById('timer').value = 
+                        `${currentMinutes < 10 ? '0' : ''}${currentMinutes}`;
+                } else {
+                    document.getElementById('timer').value = 
+                        `${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+                }
+
+                if (remainingSeconds > 0) {
+                    remainingSeconds--;
+                } else {
+                    clearInterval(timerInterval);
+                    document.getElementById('pingSound').play().catch(error => {
+                        console.log("Sound playback failed: ", error);
+                    });
+                    resetDimming();
+
+                    if (type === 'focus') {
+                        totalTimeAdded += minutes;
+                        document.getElementById('counter').textContent = (totalTimeAdded / 60).toFixed(2);
+                        localStorage.setItem('totalTimeAdded', totalTimeAdded.toFixed(2));
+                    }
+                }
+            }
+
+            if (type === 'focus') {
+                applyDimming();
+            } else {
+                resetDimming();
+            }
+
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+            startQuoteShuffle();
+        }
+
+        function applyDimming() {
+            document.body.classList.add('dimmed');
+            document.getElementById('timer').classList.add('dim-exclude');
+            document.getElementById('quote').classList.add('dim-exclude');
+        }
+
+        function resetDimming() {
+            document.body.classList.remove('dimmed');
+            document.getElementById('timer').classList.remove('dim-exclude');
+            document.getElementById('quote').classList.remove('dim-exclude');
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            clearInterval(quoteInterval);
+            document.getElementById('timer').value = '00';
+            remainingSeconds = 0;
+            isPaused = false;
+            document.getElementById('pauseButton').textContent = "Pause Timer";
+        }
+
+        function pauseTimer() {
+            if (isPaused) {
+                startCustomTimer(currentMode);
+                document.getElementById('pauseButton').textContent = "Pause Timer";
+            } else {
+                clearInterval(timerInterval);
+                clearInterval(quoteInterval);
+                isPaused = true;
+                document.getElementById('pauseButton').textContent = "Resume Timer";
+                resetDimming();
+            }
+        }
+
+        function loadSpotifyPlayer() {
+            const playlistId = document.getElementById('playlistId').value;
+            if (playlistId) {
+                const spotifyPlayer = `<iframe src="https://open.spotify.com/embed/playlist/${playlistId}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+                document.getElementById('spotifyPlayer').innerHTML = spotifyPlayer;
+                localStorage.setItem('playlistId', playlistId);
+            }
+        }
+
+        function startQuoteShuffle() {
+            changeQuote();
+            quoteInterval = setInterval(changeQuote, 900000);
+        }
+
+        window.onload = function() {
+            changeQuote();
+
+            if (savedPlaylistId) {
+                document.getElementById('playlistId').value = savedPlaylistId;
+                loadSpotifyPlayer();
+            }
+
+            let counterValue = localStorage.getItem('counter');
+            if (counterValue === null) {
+                counterValue = 0;
+            } else {
+                counterValue = parseFloat(counterValue);
+            }
+            document.getElementById('counter').textContent = counterValue;
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('timerModal')) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const counterDisplay = document.getElementById('counter');
+            const incrementButton = document.getElementById('incrementButton');
+            const resetButtonCounter = document.getElementById('resetButtonCounter');
+
+            let counterValue = localStorage.getItem('counter');
+            if (counterValue === null) {
+                counterValue = 0;
+            } else {
+                counterValue = parseFloat(counterValue);
+            }
+            counterDisplay.textContent = counterValue;
+
+            incrementButton.addEventListener('click', () => {
+                counterValue += 0.5;
+                counterDisplay.textContent = counterValue;
+                localStorage.setItem('counter', counterValue);
+            });
+
+            resetButtonCounter.addEventListener('click', () => {
+                counterValue = 0;
+                counterDisplay.textContent = counterValue;
+                localStorage.setItem('counter', counterValue);
+            });
+        });
+    </script>
+</body>
+</html>
