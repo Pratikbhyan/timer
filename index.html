@@ -23,7 +23,7 @@
             margin-top: 200px;
         }
         #timer {
-            font-size: 6em;
+            font-size: 10em;
             text-align: center;
             background: none;
             border: none;
@@ -91,23 +91,11 @@
 </head>
 <body>
     <div class="controls text-center">
-        <button class="btn btn-primary" onclick="openModal()">Start Timer</button>
+        <button class="btn btn-primary" onclick="startCustomTimer()">Start Timer</button>
         <button class="btn btn-warning" onclick="resetTimer()">Reset Timer</button>
         <button class="btn btn-danger" onclick="pauseTimer()" id="pauseButton">Pause Timer</button>
     </div>
     <input type="text" id="timer" value="00">
-
-    <div class="modal" id="timerModal">
-        <div class="modal-dialog">
-            <div class="modal-content text-center">
-                <div class="modal-body">
-                    <p>Is this focus time or break time?</p>
-                    <button class="btn btn-success" onclick="startCustomTimer('focus')">Focus Time</button>
-                    <button class="btn btn-secondary" onclick="startCustomTimer('break')">Break Time</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div id="quote">"The best way to get started is to quit talking and begin doing." - Walt Disney</div>
 
@@ -133,7 +121,6 @@
         let timerInterval;
         let remainingSeconds = 0;
         let isPaused = false;
-        let currentMode = '';
         let quoteInterval;
         const savedPlaylistId = localStorage.getItem('playlistId');
         let totalTimeAdded = parseFloat(localStorage.getItem('totalTimeAdded')) || 0;
@@ -149,17 +136,7 @@
             document.getElementById('quote').textContent = quotes[randomIndex];
         }
 
-        function openModal() {
-            document.getElementById('timerModal').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('timerModal').style.display = 'none';
-        }
-
-        function startCustomTimer(type) {
-            closeModal();
-            currentMode = type;
+        function startCustomTimer() {
             let minutes = parseInt(document.getElementById('timer').value) || 0;
             remainingSeconds = isPaused ? remainingSeconds : minutes * 60;
             isPaused = false;
@@ -182,21 +159,10 @@
                         console.log("Sound playback failed: ", error);
                     });
                     resetDimming();
-
-                    if (type === 'focus') {
-                        totalTimeAdded += minutes;
-                        document.getElementById('counter').textContent = (totalTimeAdded / 60).toFixed(2);
-                        localStorage.setItem('totalTimeAdded', totalTimeAdded.toFixed(2));
-                    }
                 }
             }
 
-            if (type === 'focus') {
-                applyDimming();
-            } else {
-                resetDimming();
-            }
-
+            applyDimming();
             updateTimer();
             timerInterval = setInterval(updateTimer, 1000);
             startQuoteShuffle();
@@ -225,7 +191,7 @@
 
         function pauseTimer() {
             if (isPaused) {
-                startCustomTimer(currentMode);
+                startCustomTimer();
                 document.getElementById('pauseButton').textContent = "Pause Timer";
             } else {
                 clearInterval(timerInterval);
