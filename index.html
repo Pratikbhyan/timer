@@ -34,7 +34,7 @@
             cursor: pointer;
         }
         #timer {
-            font-size: 15vw;
+            font-size: 80vw;
             text-align: center;
             background: none;
             border: none;
@@ -154,6 +154,7 @@
             document.getElementById('quote').textContent = quotes[randomIndex];
         }
 
+        changeQuote(); // Set a random quote on page load
         setInterval(changeQuote, 600000); // Change quote every 10 minutes
 
         function openModal() {
