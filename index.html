@@ -84,6 +84,9 @@
             text-align: center;
             max-width: 600px;
         }
+        .dimmed .controls, .dimmed .stats-container, .dimmed .modal {
+            opacity: 0.2;
+        }
     </style>
 </head>
 <body>
@@ -110,7 +113,7 @@
         </div>
     </div>
 
-    <div id="quote">"The best way to get started is to quit talking and begin doing." - Walt Disney</div>
+    <div id="quote"></div>
 
     <audio id="pingSound" src="ping.mp3"></audio>
 
@@ -221,8 +224,6 @@
             document.getElementById('quote').textContent = quotes[randomIndex];
         }
 
-        setInterval(changeQuote, 600000); // Change quote every 10 minutes
-
         function openModal() {
             document.getElementById('timerModal').style.display = 'block';
         }
@@ -260,6 +261,9 @@
                 }
             }
 
+            document.body.classList.add('dimmed'); // Dim everything except timer and quote
+            document.getElementById('timer').classList.add('dim-exclude');
+            document.getElementById('quote').classList.add('dim-exclude');
             updateTimer();
             timerInterval = setInterval(updateTimer, 1000);
         }
@@ -270,6 +274,9 @@
             remainingSeconds = 0;
             isPaused = false;
             document.getElementById('pauseButton').textContent = "Pause Timer";
+            document.body.classList.remove('dimmed'); // Remove dimming
+            document.getElementById('timer').classList.remove('dim-exclude');
+            document.getElementById('quote').classList.remove('dim-exclude');
         }
 
         function pauseTimer() {
@@ -280,6 +287,9 @@
                 clearInterval(timerInterval);
                 isPaused = true;
                 document.getElementById('pauseButton').textContent = "Resume Timer";
+                document.body.classList.remove('dimmed'); // Remove dimming
+                document.getElementById('timer').classList.remove('dim-exclude');
+                document.getElementById('quote').classList.remove('dim-exclude');
             }
         }
 
@@ -293,6 +303,8 @@
                 closeModal();
             }
         }
+
+        window.onload = changeQuote; // Randomize quote on page load
     </script>
 </body>
 </html>
